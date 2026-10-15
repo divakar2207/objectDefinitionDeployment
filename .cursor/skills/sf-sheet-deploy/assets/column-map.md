@@ -2,14 +2,14 @@
 
 # Object-tab column map (header-driven; indices are fallback only)
 
-Locate columns by **header name**. Full rules: [sheet-columns.md](../references/sheet-columns.md).
+Locate columns by **header name**. Full rules: [sf-sheet-columns.mdc](../../../rules/sf-sheet-columns.mdc).
 
 | Col | idx | Header | Role |
 |-----|----:|--------|------|
 | A | 0 | No. | Row number. `END[項目]` ends the field list. Highlight this cell only. |
 | D | 3 | Field API Name | Blank ≠ new. Label-fallback first. |
 | E | 4 | Data Type (`データ型`) | Field type. |
-| F | 5 | Size (`サイズ` / `length`) | **Client-facing size.** Text → char length. Number/Currency/Percent → `"integerDigits, scale"` (e.g. `"12, 3"` = precision 15, scale 3). See [numeric-size-column-f.md](../references/numeric-size-column-f.md). |
+| F | 5 | Size (`サイズ` / `length`) | **Client-facing size.** Text → char length. Number/Currency/Percent → `"integerDigits, scale"` (e.g. `"12, 3"` = precision 15, scale 3). See [sf-numeric-size-column-f.mdc](../../../rules/sf-numeric-size-column-f.mdc). |
 | G | 6 | (JP description / `データ型に応じて…`) | Human DESCRIPTION only. **Do not read as value.** |
 | H | 7 | Type Specific Value (`設定値`) | REAL formula / picklist / referenceTo / displayFormat. Dummy formulas write back here. |
 | L | 11 | Default Value (`デフォルト`) | Real default. Do not confuse with H. |

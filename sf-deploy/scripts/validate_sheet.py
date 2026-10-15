@@ -517,7 +517,9 @@ def validate(
                                  f"Value '{e}' has multiple ':' — only the first splits "
                                  "Label:ApiName; escape a literal label colon as '\\:'")
                     if ncolon >= 1:
-                        label, api = [p.strip() for p in e.replace("\\:", ":").split(":", 1)]
+                        # same split as generate_xml: protect "\:" first, then split
+                        label, api = [p.strip().replace("\x00", ":")
+                                      for p in e.replace("\\:", "\x00").split(":", 1)]
                         if not api:
                             rep.error(obj, loc, "picklist.api_empty",
                                       f"Value '{e}' has an empty ApiName after ':'")

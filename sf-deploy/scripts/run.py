@@ -43,6 +43,8 @@ def main() -> int:
                     help="explicitly process EVERY object tab (bypasses the scope gate)")
     ap.add_argument("--only", default="", help="restrict package.xml to these object API names")
     ap.add_argument("--strict", action="store_true", help="treat validation WARN as blocking")
+    ap.add_argument("--target-org", default="",
+                    help="org alias; reads existing relationshipNames so col X is not invented")
     args = ap.parse_args()
 
     # ---- scope-selection gate --------------------------------------------- #
@@ -69,6 +71,8 @@ def main() -> int:
                "--json", ".build/validation_report.json"]
     if args.strict:
         val_cmd.append("--strict")
+    if args.target_org:
+        val_cmd += ["--target-org", args.target_org]
     rc = step("2/4  Validate (deployment gate)", val_cmd)
     if rc != 0:
         print("\n⛔ Validation FAILED — pipeline stopped. Fix the sheet and re-run.")

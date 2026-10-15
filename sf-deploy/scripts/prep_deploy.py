@@ -464,7 +464,9 @@ def main() -> int:
     add_spreadsheet_id_arg(ap, dest="sheet_id", flag="--sheet-id")
     ap.add_argument("--out", default="temp_updates.json")
     ap.add_argument("--workbook", default="reports/Object_Deployment_Report.xlsx")
-    ap.add_argument("--google-home", default=os.environ.get("SF_DEPLOY_GOOGLE_HOME", str(Path.home())))
+    ap.add_argument("--google-home", default=(os.environ.get("SF_DEPLOY_GOOGLE_HOME")
+                             or os.environ.get("SEAP_GOOGLE_HOME")  # legacy name
+                             or str(Path.home())))
     ap.add_argument("--sf-home", default=os.environ.get("HOME", str(Path.home())))
     ap.add_argument("--xdg-data-home", default=str(Path.home() / ".local" / "share"))
     ap.add_argument("--apply-translations", action="store_true",

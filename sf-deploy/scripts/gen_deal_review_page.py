@@ -23,6 +23,11 @@ What is rebuilt
   出荷元/搬入先 grid tabs on 2026-10-02), and a rebuild from ``--orig`` alone
   would delete those edits on the next deploy.
 
+Not a pipeline step
+  Deal-only, one-off rebuild for a customer review. It is NOT GATE 2 of the
+  object-definition deploy, and running it again can overwrite a Deal page
+  that people have since edited. It refuses to run without ``--force``.
+
 Outputs (source format, under --out-dir)
   flexipages/<page>.flexipage-meta.xml
   objects/TI_Fnt_Deal__c/compactLayouts/<cl>.compactLayout-meta.xml
@@ -525,7 +530,14 @@ def main() -> int:
                     help="place multi-placement fields at their first location only "
                          "(default: every location; the Metadata API accepts repeats)")
     ap.add_argument("--report", default="../.build/erppj1032/validation_report.json")
+    ap.add_argument("--force", action="store_true",
+                    help="required: confirms this one-off Deal page rebuild is intended")
     args = ap.parse_args()
+    if not args.force:
+        print("⛔ gen_deal_review_page.py is a Deal-only, one-off review rebuild, not a "
+              "deploy step.\n   It can overwrite an edited Deal page. Re-run with "
+              "--force only if that is intended.")
+        return 2
 
     rep = Report()
     org_fields = set(json.loads(Path(args.org_fields).read_text()))

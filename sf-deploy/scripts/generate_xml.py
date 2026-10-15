@@ -9,9 +9,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from relname import (  # noqa: E402
     MAX_RELATIONSHIP_NAME,
     derive_relationship_name,
+    fetch_org_relationship_names,
     is_standard_object,
+    org_relationship_cache_objects,
     org_relationship_name,
     qualify_relationship_name,
+    save_org_relationship_names,
 )
 from numeric_size import apply_numeric_size, is_numeric_sheet_type  # noqa: E402
 from rollup_h import parse_rollup_h, summary_operation_xml  # noqa: E402  # Updated by Divakar N — 2026-09-23
@@ -917,7 +920,51 @@ def process_fields(rows: list[dict]) -> None:
     # (b) it was a guess rather than a sourced value from the sheet.
 
 
+def _relname_org_gaps(rows: list[dict]) -> list[str]:
+    """Objects with a blank-col-X Lookup/MD row whose org relationshipNames
+    were not read, so an existing field would get an invented name."""
+    read = org_relationship_cache_objects()
+    gaps: set[str] = set()
+    for row in rows:
+        sf_type, _ = normalize_type(str(row.get("Data Type") or "").strip())
+        if sf_type not in ("Lookup", "MasterDetail"):
+            continue
+        if str(row.get("Relationship Name") or "").strip():
+            continue
+        if not str(row.get("Field API Name") or "").strip().endswith("__c"):
+            continue
+        obj = str(row.get("Object API Name") or row.get("_SheetName") or "").strip()
+        if obj and obj not in read:
+            gaps.add(obj)
+    return sorted(gaps)
+
+
+def _ensure_org_relationship_names(rows: list[dict], target_org: str | None,
+                                   assume_new: bool) -> None:
+    if target_org:
+        objs = {str(r.get("Object API Name") or r.get("_SheetName") or "").strip()
+                for r in rows}
+        rels = fetch_org_relationship_names(target_org, {o for o in objs if o})
+        if rels is None:
+            sys.exit("❌ could not read relationshipName from the org — refusing to "
+                     "derive names for fields that may already exist.")
+        save_org_relationship_names(target_org, rels)
+    gaps = _relname_org_gaps(rows)
+    if gaps and not assume_new:
+        sys.exit("❌ blank relationshipName (col X) on Lookup/Master-Detail rows of "
+                 f"{', '.join(gaps)}, but the org was not read for these objects.\n"
+                 "   Run validate_sheet.py --target-org <ORG> first, pass "
+                 "--target-org <ORG> here, or --assume-new if every such field is new.")
+
+
 def main() -> None:
+    import argparse
+    ap = argparse.ArgumentParser(description="Sheet rows -> CustomObject/CustomField XML")
+    ap.add_argument("--target-org", default="",
+                    help="read existing relationshipNames from this org first")
+    ap.add_argument("--assume-new", action="store_true",
+                    help="derive blank col X without an org read (every Lookup/MD is new)")
+    args = ap.parse_args()
     input_path = Path("temp_updates.json")
     if not input_path.exists():
         print("No temp_updates.json found — skipping field XML generation.")
@@ -930,6 +977,7 @@ def main() -> None:
         print("No rows in temp_updates.json — nothing to generate.")
         return
 
+    _ensure_org_relationship_names(rows, args.target_org, args.assume_new)
     print(f"Processing {len(rows)} row(s) for custom field XML generation...")
     process_fields(rows)
     print("Custom field XML generation complete.")

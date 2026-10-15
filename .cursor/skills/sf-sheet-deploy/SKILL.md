@@ -14,13 +14,14 @@ Working directory is always `sf-deploy/`. The Google Sheet is the single source
 of truth. **Default spreadsheet ID** lives in
 `sf-deploy/scripts/sheet_config.py` (`DEFAULT_SPREADSHEET_ID`). Omit
 `--spreadsheet-id` to use it. To switch workbooks, edit **only** that file.
-The always-applied rules in `.cursor/rules` are the source of truth; read the linked
-reference when that step is active. Before every deploy, apply past lessons in
-[deployment-knowledge.md](references/deployment-knowledge.md).
+The rules in `.cursor/rules` are the only source of truth. This skill links to
+them and does not copy them, so there is no second version to drift; read the
+linked rule when that step is active. Before every deploy, apply past lessons in
+[deployment_knowledge.md](../../deployment_knowledge.md).
 `log_failure.py` appends DRAFT lessons to the same knowledge base.
 
 **Authoritative policy:** there is **no `SHOOT` password**. Residual `SHOOT`
-text in older notes is void. See [deploy-authorization.md](references/deploy-authorization.md).
+text in older notes is void. See [deploy-no-password-policy.mdc](../../rules/deploy-no-password-policy.mdc).
 Sheet-write confirmation is **not** a password — it still applies.
 
 ## Hard gates (never skip)
@@ -29,10 +30,10 @@ Sheet-write confirmation is **not** a password — it still applies.
    the whole sheet. Never reuse a prior task's scope.
 2. **Live reads** — fetch the sheet via the API now. Never answer from
    `temp_updates.json`, `.build/whole_sheet.json`, conversation memory, or
-   pasted excerpts. See [read-sheet-live.md](references/read-sheet-live.md).
+   pasted excerpts. See [read-sheet-live.mdc](../../rules/read-sheet-live.mdc).
 3. **Sheet writes** — preview `cell: old → new`, get confirmation, then
    `--apply`. One confirmation per change set.
-   See [sheet-write-confirmation.md](references/sheet-write-confirmation.md).
+   See [sheet-write-confirmation.mdc](../../rules/sheet-write-confirmation.mdc).
 4. **Org** — `python scripts/deploy.py --list-orgs`, user picks one, pass
    `--target-org` / `--org` explicitly. No silent default.
 5. **Validation** — any ERROR in `.build/validation_report.json` stops generate /
@@ -42,22 +43,22 @@ Sheet-write confirmation is **not** a password — it still applies.
    `.build/last_deploy.log` alone (it is overwritten by dry-run and real deploy).
    Query Tooling `CustomField` with **no** `LIKE 'TI_Fnt_%'` filter.
 8. **Self-correction** — complete every DRAFT lesson in
-   [deployment-knowledge.md](references/deployment-knowledge.md) before claiming
-   success. See [deploy-self-correction.md](references/deploy-self-correction.md).
+   [deployment_knowledge.md](../../deployment_knowledge.md) before claiming
+   success. See [sf-deploy-self-correction.mdc](../../rules/sf-deploy-self-correction.mdc).
 9. **IsDelete first** — read AD live before naming, delta, drift, or dedupe.
-   WIP wins. See [isdelete-column-always.md](references/isdelete-column-always.md).
+   WIP wins. See [sf-isdelete-column-always.mdc](../../rules/sf-isdelete-column-always.mdc).
 10. **Value column = H (`設定値`)** — never read col G (description) as formula /
     picklist / referenceTo. Locate by JP substring, not English machine headers.
 11. **Blank API ≠ new** — label-fallback match the org before creating.
-    See [blank-api-label-fallback.md](references/blank-api-label-fallback.md).
+    See [sf-blank-api-label-fallback-match.mdc](../../rules/sf-blank-api-label-fallback-match.mdc).
 12. **Drift includes `Name`** — type + AutoNumber `displayFormat` every run.
     Custom-only drift is a false all-clear. Name Text→AutoNumber is destructive —
-    never auto-redeploy. See [drift-includes-standard-fields.md](references/drift-includes-standard-fields.md).
+    never auto-redeploy. See [sf-drift-includes-standard-fields.mdc](../../rules/sf-drift-includes-standard-fields.mdc).
 13. **AI status by operation** — `Deployed` / `Deleted` / `Not Deployed` /
     `Standard`. A create/delete is not done until AI matches the org.
-    See [deploy-status-column-always.md](references/deploy-status-column-always.md).
+    See [sf-deploy-status-column-always.mdc](../../rules/sf-deploy-status-column-always.mdc).
 14. **AH re-evaluate** — on every field-state change, de-stale AH notes.
-    See [ah-comment-reevaluate.md](references/ah-comment-reevaluate.md).
+    See [sf-ah-comment-reevaluate-on-change.mdc](../../rules/sf-ah-comment-reevaluate-on-change.mdc).
 
 ## Preferred entry
 
@@ -90,12 +91,12 @@ wait for explicit selection, then proceed.
    <!-- Updated by Divakar N — 2026-09-21 -->
    **Blank Field API Name (col D) is also NOT a hard blocker** — generate
    `TI_Fnt_<Component>__c` and write it back (gated). See
-   [deploy-delta-and-blockers.md](references/deploy-delta-and-blockers.md) and
-   [field-api-naming.md](references/field-api-naming.md) §0b.
+   [sf-deploy-delta-and-blockers.mdc](../../rules/sf-deploy-delta-and-blockers.mdc) and
+   [sf-field-api-naming.mdc](../../rules/sf-field-api-naming.mdc) §0b.
 3. **Validate** — `python scripts/validate_sheet.py --in temp_updates.json --json .build/validation_report.json`
 4. **Existence** — live `EntityDefinition` per object. Missing object → deploy
    CustomObject + fields. Existing → delta only.
-   See [object-existence.md](references/object-existence.md).
+   See [sf-object-existence-precheck.mdc](../../rules/sf-object-existence-precheck.mdc).
 5. **Delta + drift** — Tooling `CustomField` for names (case-insensitive);
    `attr_drift.py` for definitions **including standard Name**. Deploy new
    fields only. Surface drift; never silently redeploy a type change (may be
@@ -104,7 +105,7 @@ wait for explicit selection, then proceed.
    fields already in the org: §3c English (`Field Label (EN)` → org
    translation) and §3d Japanese (`Field Label` → org `CustomField.label`,
    `label_sync.py`). `prep_deploy.py` does both automatically.
-   See [deploy-delta-and-blockers.md](references/deploy-delta-and-blockers.md).
+   See [sf-deploy-delta-and-blockers.mdc](../../rules/sf-deploy-delta-and-blockers.mdc).
    Lookup/MD `relationshipName`: existing field = org value; derive for new
    fields only.
    <!-- Updated by Divakar N — 2026-10-06. -->
@@ -122,14 +123,14 @@ wait for explicit selection, then proceed.
     → FlexiPage only on first object create, when Tab/section is present
     → org-default `actionOverrides`. Later sheet deploys do not modify that page,
     except to unplace an IsDelete field before deleting it.
-    See [post-deploy-fls-and-flexipage.md](references/post-deploy-fls-and-flexipage.md).
+    See [sf-post-deploy-fls-and-flexipage.mdc](../../rules/sf-post-deploy-fls-and-flexipage.mdc).
 11. **New object tab** — if object was newly created and sheet **H6** = TRUE,
     create CustomTab, then **auto-grant tab visibility** `DefaultOn` on
-    `SalesFrontAdmin` ([tab-visibility.md](references/tab-visibility.md)), then
+    `SalesFrontAdmin` ([sf-tab-visibility-mandatory.mdc](../../rules/sf-tab-visibility-mandatory.mdc)), then
     ASK about Lightning apps.
-    See [object-tab-and-app.md](references/object-tab-and-app.md).
+    See [sf-object-tab-and-app.mdc](../../rules/sf-object-tab-and-app.mdc).
 
-Full pipeline notes: [pipeline.md](references/pipeline.md).
+Full pipeline notes: [sf-sheet-deployment.mdc](../../rules/sf-sheet-deployment.mdc).
 
 ## Sheet columns (header-driven)
 
@@ -142,12 +143,12 @@ Value cells: **H = `設定値`** (real formula/picklist/referenceTo); **L = `デ
 <!-- Updated by Divakar N -->
 **F = `サイズ`** — text length, **or** Number/Currency/Percent as `"12, 3"`
 (integer digits, scale → Salesforce precision 15 / scale 3). Client does **not**
-fill T/U. See [numeric-size-column-f.md](references/numeric-size-column-f.md).
+fill T/U. See [sf-numeric-size-column-f.mdc](../../rules/sf-numeric-size-column-f.mdc).
 
 AI writes: AH = `GDC AI Tool Comments`; AI = `Deployment Status`
 (`Deployed` / `Not Deployed` / `Standard` / `Deleted`).
 
-See [sheet-columns.md](references/sheet-columns.md).
+See [sf-sheet-columns.mdc](../../rules/sf-sheet-columns.mdc).
 
 ## Field naming
 
@@ -161,8 +162,8 @@ label-match the org first; if genuinely new, **generate**
 Why: the client ships labels/types first; GDC owns the API name. Stopping at
 "blocked: blank API" parked whole new tabs (`TradeTermsAppDetail` 2026-09-21).
 
-See [field-api-naming.md](references/field-api-naming.md) and
-[field-namespace-prefix.md](references/field-namespace-prefix.md).
+See [sf-field-api-naming.mdc](../../rules/sf-field-api-naming.mdc) and
+[sf-field-namespace-prefix.mdc](../../rules/sf-field-namespace-prefix.mdc).
 
 ## Attribute write-back (mandatory)
 
@@ -194,21 +195,21 @@ add a **validator guard**, complete the DRAFT lesson, then
 
 | When | Read |
 |------|------|
-| No password / residual SHOOT | [deploy-authorization.md](references/deploy-authorization.md) |
-| Any sheet read | [read-sheet-live.md](references/read-sheet-live.md) |
-| Any sheet write | [sheet-write-confirmation.md](references/sheet-write-confirmation.md) |
-| Failure / before deploy | [deploy-self-correction.md](references/deploy-self-correction.md), [deployment-knowledge.md](references/deployment-knowledge.md) |
-| Blockers, delta, drift, deletes | [deploy-delta-and-blockers.md](references/deploy-delta-and-blockers.md) |
-| Object exists? | [object-existence.md](references/object-existence.md) |
-| After fields land | [post-deploy-fls-and-flexipage.md](references/post-deploy-fls-and-flexipage.md) |
-| New object tab + app | [object-tab-and-app.md](references/object-tab-and-app.md) |
-| Tab not visible | [tab-visibility.md](references/tab-visibility.md) |
-| Columns / END[項目] / AH / AI | [sheet-columns.md](references/sheet-columns.md) |
-| Numeric size in col F (`12, 3`) | [numeric-size-column-f.md](references/numeric-size-column-f.md) <!-- Updated by Divakar N --> |
-| Naming | [field-api-naming.md](references/field-api-naming.md), [field-namespace-prefix.md](references/field-namespace-prefix.md) |
-| Blank API name | [blank-api-label-fallback.md](references/blank-api-label-fallback.md) |
-| Drift of standard Name | [drift-includes-standard-fields.md](references/drift-includes-standard-fields.md) |
-| IsDelete flag | [isdelete-column-always.md](references/isdelete-column-always.md) |
-| AI status after op | [deploy-status-column-always.md](references/deploy-status-column-always.md) |
-| Stale AH comments | [ah-comment-reevaluate.md](references/ah-comment-reevaluate.md) |
-| Prep playbook / lookups | [pipeline.md](references/pipeline.md) |
+| No password / residual SHOOT | [deploy-no-password-policy.mdc](../../rules/deploy-no-password-policy.mdc) |
+| Any sheet read | [read-sheet-live.mdc](../../rules/read-sheet-live.mdc) |
+| Any sheet write | [sheet-write-confirmation.mdc](../../rules/sheet-write-confirmation.mdc) |
+| Failure / before deploy | [sf-deploy-self-correction.mdc](../../rules/sf-deploy-self-correction.mdc), [deployment_knowledge.md](../../deployment_knowledge.md) |
+| Blockers, delta, drift, deletes | [sf-deploy-delta-and-blockers.mdc](../../rules/sf-deploy-delta-and-blockers.mdc) |
+| Object exists? | [sf-object-existence-precheck.mdc](../../rules/sf-object-existence-precheck.mdc) |
+| After fields land | [sf-post-deploy-fls-and-flexipage.mdc](../../rules/sf-post-deploy-fls-and-flexipage.mdc) |
+| New object tab + app | [sf-object-tab-and-app.mdc](../../rules/sf-object-tab-and-app.mdc) |
+| Tab not visible | [sf-tab-visibility-mandatory.mdc](../../rules/sf-tab-visibility-mandatory.mdc) |
+| Columns / END[項目] / AH / AI | [sf-sheet-columns.mdc](../../rules/sf-sheet-columns.mdc) |
+| Numeric size in col F (`12, 3`) | [sf-numeric-size-column-f.mdc](../../rules/sf-numeric-size-column-f.mdc) <!-- Updated by Divakar N --> |
+| Naming | [sf-field-api-naming.mdc](../../rules/sf-field-api-naming.mdc), [sf-field-namespace-prefix.mdc](../../rules/sf-field-namespace-prefix.mdc) |
+| Blank API name | [sf-blank-api-label-fallback-match.mdc](../../rules/sf-blank-api-label-fallback-match.mdc) |
+| Drift of standard Name | [sf-drift-includes-standard-fields.mdc](../../rules/sf-drift-includes-standard-fields.mdc) |
+| IsDelete flag | [sf-isdelete-column-always.mdc](../../rules/sf-isdelete-column-always.mdc) |
+| AI status after op | [sf-deploy-status-column-always.mdc](../../rules/sf-deploy-status-column-always.mdc) |
+| Stale AH comments | [sf-ah-comment-reevaluate-on-change.mdc](../../rules/sf-ah-comment-reevaluate-on-change.mdc) |
+| Prep playbook / lookups | [sf-sheet-deployment.mdc](../../rules/sf-sheet-deployment.mdc) |

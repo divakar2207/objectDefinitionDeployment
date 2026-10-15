@@ -183,6 +183,16 @@ def save_org_relationship_names(org: str, rels: dict[str, dict[str, str]]) -> No
               ensure_ascii=False, indent=1)
 
 
+def org_relationship_cache_objects() -> set[str]:
+    """Objects whose relationship fields were read from the org this run
+    (absent objects are cached as {}); empty when the org was not read."""
+    try:
+        cache = json.load(open(ORG_RELNAME_CACHE, encoding="utf-8"))
+    except (OSError, ValueError):
+        return set()
+    return set((cache.get("objects") or {}).keys())
+
+
 def org_relationship_name(obj_api: str, field_api: str) -> str | None:
     """Org relationshipName for an EXISTING field, else None (new field, or the
     org was not read this run)."""

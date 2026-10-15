@@ -254,6 +254,9 @@ def main() -> int:
         # Source tracking reports NothingToDeploy when the manifest members
         # already match the org. That is the desired end state, not a failure.
         print("ℹ️  NothingToDeploy — local source already matches the org; treating as success.")
+        print("   This exit code is not proof: run verify_deploy.py against the org.")
+        with logpath.open("a", encoding="utf-8") as lf:
+            lf.write("# NothingToDeploy override: exit 0, live verify_deploy.py required\n")
         return 0
     if rc != 0 and _is_transport_drop(logpath):
         status = _server_side_status(org)
@@ -299,7 +302,14 @@ def _is_nothing_to_deploy(logpath: Path) -> bool:
         text = logpath.read_text(encoding="utf-8", errors="replace")
     except Exception:
         return False
-    return ("NothingToDeploy" in text) or ("No local changes to deploy" in text)
+    if not (("NothingToDeploy" in text) or ("No local changes to deploy" in text)):
+        return False
+    return not any(m in text for m in _DEPLOY_FAILURE_MARKERS)
+
+
+# Any of these in the log means a real failure, even if NothingToDeploy also appears.
+_DEPLOY_FAILURE_MARKERS = ("Component Failures", "Status: Failed", "Deploy failed",
+                           "DeployFailed", "Test Failures")
 
 
 def _is_transport_drop(logpath: Path) -> bool:
